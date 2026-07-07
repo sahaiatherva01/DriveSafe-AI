@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SentinelAI — Driver Monitoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══ NAVBAR ══════════════════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="17" stroke="url(#g1)" stroke-width="2"/>
+            <path d="M9 18c0-4.97 4.03-9 9-9s9 4.03 9 9" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="18" cy="22" r="3" fill="url(#g1)"/>
+            <path d="M18 19v-4" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">SentinelAI</div>
+          <div class="brand-sub">Driver Monitoring System</div>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <button class="nav-tab active" id="navLive" data-view="live">Live Monitor</button>
+        <button class="nav-tab" id="navReport" data-view="report" disabled>Session Report</button>
+      </div>
+
+      <div class="nav-right">
+        <div class="status-pill" id="statusPill">
+          <div class="pill-dot" id="pillDot"></div>
+          <span id="pillLabel">Offline</span>
+        </div>
+        <button class="btn-start" id="btnStart">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Start
+        </button>
+        <button class="btn-stop" id="btnStop" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+          Stop
+        </button>
+        <button class="btn-reset" id="btnReset" title="Reset session">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ PROCESSING OVERLAY ══════════════════════════════════════════════════ -->
+  <div class="processing-overlay hidden" id="processingOverlay">
+    <div class="processing-box">
+      <div class="processing-spinner"></div>
+      <div class="processing-text" id="processingText">Analyzing Session...</div>
+      <div class="processing-bar-track">
+        <div class="processing-bar-fill" id="processingBarFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MAIN CONTENT ════════════════════════════════════════════════════════ -->
+  <main class="page">
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         VIEW: LIVE MONITORING
+         Only information useful while actively driving/monitoring.
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="view" id="viewLive">
+
+      <!-- ── Camera + status ─────────────────────────────────────────────── -->
+      <section id="live" class="section">
+        <div class="section-header">
+          <h2 class="section-title">Live Feed</h2>
+          <span class="section-badge" id="liveBadge">OFFLINE</span>
+        </div>
+
+        <div class="live-grid">
+          <!-- Camera -->
+          <div class="camera-card glass-card">
+            <div class="camera-wrap">
+              <img id="videoFeed" src="" alt="Camera feed" />
+              <div class="cam-placeholder" id="camPlaceholder">
+                <svg width="52" height="52" viewBox="0 0 48 48" fill="none">
+                  <path d="M6 16V12a4 4 0 0 1 4-4h4" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M42 16V12a4 4 0 0 0-4-4h-4" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M6 32v4a4 4 0 0 0 4 4h4" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M42 32v4a4 4 0 0 1-4 4h-4" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="24" cy="24" r="7" stroke="#00d4ff" stroke-width="2"/>
+                </svg>
+                <p>Click <strong>Start</strong> to activate camera</p>
+              </div>
+              <div class="status-ring" id="statusRing"></div>
+              <div class="session-timer-chip" id="sessionTimerChip">00:00</div>
+            </div>
+          </div>
+
+          <!-- Status + quick metrics sidebar -->
+          <div class="live-sidebar">
+
+            <!-- Driver status -->
+            <div class="glass-card status-card">
+              <div class="card-eyebrow">DRIVER STATUS</div>
+              <div class="driver-status-row">
+                <div class="status-orb" id="statusOrb">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" id="statusOrbIcon">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="driver-status-val" id="driverStatusVal">OFFLINE</div>
+                  <div class="driver-status-hint" id="driverStatusHint">Start detection to monitor</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alert banner -->
+            <div class="alert-card hidden" id="alertCard">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/></svg>
+              <span id="alertText">—</span>
+            </div>
+
+            <!-- Quick stats row -->
+            <div class="quick-stats">
+              <div class="qstat glass-card">
+                <div class="qstat-val" id="qFPS">—</div>
+                <div class="qstat-lbl">FPS</div>
+              </div>
+              <div class="qstat glass-card">
+                <div class="qstat-val" id="qConf">—</div>
+                <div class="qstat-lbl">Confidence</div>
+              </div>
+              <div class="qstat glass-card">
+                <div class="qstat-val" id="qSafety">—</div>
+                <div class="qstat-lbl">Safety Score</div>
+              </div>
+              <div class="qstat glass-card">
+                <div class="qstat-val" id="qRisk">—</div>
+                <div class="qstat-lbl">Current Risk</div>
+              </div>
+            </div>
+
+            <!-- AI Decision panel -->
+            <div class="glass-card ai-decision-card">
+              <div class="card-eyebrow">AI DECISION ENGINE</div>
+              <div class="ai-sources">
+                <div class="ai-src">
+                  <div class="ai-src-lbl">Rule CV</div>
+                  <div class="ai-src-risk" id="aiRuleRisk">—</div>
+                  <div class="mini-bar-track"><div class="mini-bar" id="aiRuleBar"></div></div>
+                </div>
+                <div class="ai-src">
+                  <div class="ai-src-lbl">PyTorch</div>
+                  <div class="ai-src-risk" id="aiModelRisk">—</div>
+                  <div class="mini-bar-track"><div class="mini-bar" id="aiModelBar"></div></div>
+                </div>
+                <div class="ai-src">
+                  <div class="ai-src-lbl">Temporal</div>
+                  <div class="ai-src-risk" id="aiTempRisk">—</div>
+                  <div class="mini-bar-track"><div class="mini-bar" id="aiTempBar"></div></div>
+                </div>
+                <div class="ai-src ai-src-final">
+                  <div class="ai-src-lbl">Final</div>
+                  <div class="ai-final-risk" id="aiFinalRisk">—</div>
+                  <div class="ai-badges-row">
+                    <span class="ai-badge" id="badgePT">PT</span>
+                    <span class="ai-badge" id="badgeTF">TF</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Live metrics cards ──────────────────────────────────────────── -->
+      <section id="metrics" class="section">
+        <div class="section-header">
+          <h2 class="section-title">Live Metrics</h2>
+          <span class="section-sub">Updates every 300ms</span>
+        </div>
+
+        <div class="metrics-grid">
+
+          <!-- EAR -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon eye-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="metric-label">Eye Aspect Ratio</div>
+            <div class="metric-big" id="valEAR">—</div>
+            <div class="bar-track"><div class="bar-fill" id="barEAR"></div></div>
+            <div class="metric-foot">EAR · threshold <span class="thr-badge">0.25</span></div>
+          </div>
+
+          <!-- MAR -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon mouth-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div class="metric-label">Mouth Aspect Ratio</div>
+            <div class="metric-big" id="valMAR">—</div>
+            <div class="bar-track"><div class="bar-fill" id="barMAR"></div></div>
+            <div class="metric-foot">MAR · threshold <span class="thr-badge">0.55</span></div>
+          </div>
+
+          <!-- Attention -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon att-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="metric-label">Attention Index</div>
+            <div class="metric-big" id="valAttention">—</div>
+            <div class="bar-track"><div class="bar-fill" id="barAttention"></div></div>
+            <div class="metric-foot">0% = inattentive · 100% = alert</div>
+          </div>
+
+          <!-- Fatigue -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon fat-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            </div>
+            <div class="metric-label">Fatigue Index</div>
+            <div class="metric-big" id="valFatigue">—</div>
+            <div class="bar-track"><div class="bar-fill" id="barFatigue"></div></div>
+            <div class="metric-foot">0% = rested · 100% = fatigued</div>
+          </div>
+
+          <!-- Blink Rate -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon blink-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s3-7 11-7 11 7 11 7"/><line x1="1" y1="12" x2="1.01" y2="12" stroke-width="3"/><line x1="23" y1="12" x2="23.01" y2="12" stroke-width="3"/></svg>
+            </div>
+            <div class="metric-label">Blink Rate</div>
+            <div class="metric-big" id="valBlinkRate">—</div>
+            <div class="metric-foot">blinks / min · baseline 12–20</div>
+          </div>
+
+          <!-- Eye State -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon eye-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </div>
+            <div class="metric-label">Eye State</div>
+            <div class="metric-badge-lg" id="badgeEye">N/A</div>
+            <div class="metric-foot">Detection state this frame</div>
+          </div>
+
+          <!-- Head Pose -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon pose-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+            </div>
+            <div class="metric-label">Head Pose</div>
+            <div class="pose-vals">
+              <span class="pose-chip" id="posePitch">P —</span>
+              <span class="pose-chip" id="poseYaw">Y —</span>
+              <span class="pose-chip" id="poseRoll">R —</span>
+            </div>
+            <div class="metric-foot">Pitch · Yaw · Roll (degrees)</div>
+          </div>
+
+          <!-- Blink / Microsleep / Yawn -->
+          <div class="metric-card glass-card">
+            <div class="metric-icon drowsy-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="metric-label">Blinks · Yawns · Microsleeps</div>
+            <div class="three-stat-row">
+              <div class="two-stat"><span class="two-val" id="cntBlinks">0</span><span class="two-lbl">Blinks</span></div>
+              <div class="two-stat-div"></div>
+              <div class="two-stat"><span class="two-val warn" id="cntYawnLive">0</span><span class="two-lbl">Yawns</span></div>
+              <div class="two-stat-div"></div>
+              <div class="two-stat"><span class="two-val danger" id="cntMicro">0</span><span class="two-lbl">Microsleeps</span></div>
+            </div>
+            <div class="metric-foot">Session totals</div>
+          </div>
+
+        </div>
+      </section>
+    </div><!-- /viewLive -->
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         VIEW: SESSION REPORT
+         Populated after a session ends — analytics, charts, AI summary.
+         ════════════════════════════════════════════════════════════════════ -->
+    <div class="view hidden" id="viewReport">
+
+      <!-- ── Session Summary ─────────────────────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Session Summary</h2>
+          <button class="btn-ghost" id="btnNewSession">New Session</button>
+        </div>
+
+        <div class="report-summary-card glass-card">
+          <div class="rs-id-row">
+            <div>
+              <div class="rs-id" id="repSessionId">SESSION-000000</div>
+              <div class="rs-date" id="repDate">—</div>
+            </div>
+            <div class="rs-grade-badge" id="repGradeBadge">—</div>
+          </div>
+          <div class="rs-stats-row rs-stats-row-wide">
+            <div class="rs-stat">
+              <div class="rs-stat-lbl">Start Time</div>
+              <div class="rs-stat-val" id="repStartTime">—</div>
+            </div>
+            <div class="rs-stat">
+              <div class="rs-stat-lbl">End Time</div>
+              <div class="rs-stat-val" id="repEndTime">—</div>
+            </div>
+            <div class="rs-stat">
+              <div class="rs-stat-lbl">Duration</div>
+              <div class="rs-stat-val" id="repDuration">00:00</div>
+            </div>
+            <div class="rs-stat">
+              <div class="rs-stat-lbl">Driver State</div>
+              <div class="rs-stat-val" id="repDriverState">—</div>
+            </div>
+            <div class="rs-stat">
+              <div class="rs-stat-lbl">Safety Score</div>
+              <div class="rs-stat-val" id="repSafetyScore">—</div>
+            </div>
+            <div class="rs-stat">
+              <div class="rs-stat-lbl">Overall Risk</div>
+              <div class="rs-stat-val" id="repOverallRisk">—</div>
+            </div>
+          </div>
+          <div class="rs-safety-breakdown" id="repSafetyBreakdown"></div>
+          <div class="rs-recommendation" id="repHeadlineRec">Start a session to receive a recommendation.</div>
+        </div>
+      </section>
+
+      <!-- ── AI Summary ───────────────────────────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">AI Summary</h2>
+          <span class="section-sub">Generated from session metrics</span>
+        </div>
+        <div class="glass-card agent-summary-card">
+          <p class="agent-summary-text" id="repAiSummary">No session data yet.</p>
+        </div>
+      </section>
+
+      <!-- ── Charts ───────────────────────────────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Trend Charts</h2>
+          <span class="section-sub">Full session timeline</span>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card glass-card">
+            <div class="chart-title">EAR — Eye Aspect Ratio</div>
+            <canvas id="chartEAR" height="130"></canvas>
+          </div>
+          <div class="chart-card glass-card">
+            <div class="chart-title">MAR — Mouth Aspect Ratio</div>
+            <canvas id="chartMAR" height="130"></canvas>
+          </div>
+          <div class="chart-card glass-card">
+            <div class="chart-title">Attention & Fatigue Trend</div>
+            <canvas id="chartAttFat" height="130"></canvas>
+          </div>
+          <div class="chart-card glass-card">
+            <div class="chart-title">Risk Timeline</div>
+            <canvas id="chartRisk" height="130"></canvas>
+          </div>
+          <div class="chart-card glass-card">
+            <div class="chart-title">Blink Frequency (/min)</div>
+            <canvas id="chartBlink" height="130"></canvas>
+          </div>
+          <div class="chart-card glass-card">
+            <div class="chart-title">Head Pose (Pitch / Yaw)</div>
+            <canvas id="chartPose" height="130"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Driver Timeline ──────────────────────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Driver Timeline</h2>
+          <span class="section-sub">Key events during the session</span>
+        </div>
+        <div class="timeline-wrap glass-card">
+          <ul class="timeline" id="timeline">
+            <li class="tl-empty">No events yet — start a session</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ── Categorized Metrics ──────────────────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Categorized Metrics</h2>
+        </div>
+
+        <div class="cat-metrics-grid">
+          <div class="cat-card glass-card">
+            <div class="card-eyebrow">EYE ANALYSIS</div>
+            <div class="cat-row"><span>Average EAR</span><span id="catAvgEAR">—</span></div>
+            <div class="cat-row"><span>Minimum EAR</span><span id="catMinEAR">—</span></div>
+            <div class="cat-row"><span>Total Blinks</span><span id="catBlinks">0</span></div>
+            <div class="cat-row"><span>Long Blinks</span><span id="catLongBlinks">0</span></div>
+            <div class="cat-row"><span>Microsleeps</span><span id="catMicro">0</span></div>
+            <div class="cat-row"><span>Longest Closure</span><span id="catLongClosure">—</span></div>
+          </div>
+
+          <div class="cat-card glass-card">
+            <div class="card-eyebrow">MOUTH ANALYSIS</div>
+            <div class="cat-row"><span>Average MAR</span><span id="catAvgMAR">—</span></div>
+            <div class="cat-row"><span>Yawn Events</span><span id="catYawns">0</span></div>
+            <div class="cat-row"><span>Longest Yawn</span><span id="catLongYawn">—</span></div>
+          </div>
+
+          <div class="cat-card glass-card">
+            <div class="card-eyebrow">HEAD POSE ANALYSIS</div>
+            <div class="cat-row"><span>Avg Pitch</span><span id="catAvgPitch">—</span></div>
+            <div class="cat-row"><span>Avg Yaw</span><span id="catAvgYaw">—</span></div>
+            <div class="cat-row"><span>Maximum Head Tilt</span><span id="catMaxTilt">—</span></div>
+            <div class="cat-row"><span>Face Stability</span><span id="catStability">—</span></div>
+          </div>
+
+          <div class="cat-card glass-card">
+            <div class="card-eyebrow">PERFORMANCE ANALYSIS</div>
+            <div class="cat-row"><span>Avg FPS</span><span id="catAvgFPS">—</span></div>
+            <div class="cat-row"><span>Avg Latency</span><span id="catAvgLatency">—</span></div>
+            <div class="cat-row"><span>Avg Confidence</span><span id="catAvgConf">—</span></div>
+          </div>
+
+          <div class="cat-card glass-card">
+            <div class="card-eyebrow">SESSION STATISTICS</div>
+            <div class="cat-row"><span>Duration</span><span id="catDuration">00:00</span></div>
+            <div class="cat-row"><span>Frames Processed</span><span id="catFrames">0</span></div>
+            <div class="cat-row"><span>Drowsy Events</span><span id="catDrowsy">0</span></div>
+            <div class="cat-row"><span>Avg Attention</span><span id="catAttention">—</span></div>
+            <div class="cat-row"><span>Avg Fatigue</span><span id="catFatigue">—</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Recommendations ──────────────────────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Recommendations</h2>
+        </div>
+        <div class="glass-card agent-list-card">
+          <ul class="agent-list" id="repRecs"><li class="agent-list-empty">No data yet</li></ul>
+        </div>
+      </section>
+
+    </div><!-- /viewReport -->
+
+  </main>
+
+  <!-- ══ FOOTER ═══════════════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <span>SentinelAI · AI Driver Monitoring System</span>
+    <span class="sep">·</span>
+    <span>MediaPipe · PyTorch · TensorFlow · Flask</span>
+    <span class="sep">·</span>
+    <span>© 2024 Portfolio Project</span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
