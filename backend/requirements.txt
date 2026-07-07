@@ -1,0 +1,23 @@
+# SentinelAI — requirements (Python 3.10+ compatible)
+# Install: pip install -r requirements.txt
+
+# Web framework
+flask>=2.3,<4.0
+
+# Computer Vision
+opencv-python-headless>=4.8,<5.0
+mediapipe>=0.10,<1.0
+
+# Numerics
+numpy>=1.24,<2.1
+scipy>=1.11,<2.0
+
+# System metrics (CPU/RAM for dashboard)
+psutil>=5.9,<7.0
+
+# Optional AI (graceful fallback if absent)
+# torch>=2.0          # PyTorch MLP classifier
+# tensorflow-cpu>=2.12  # Temporal smoother (use tensorflow on macOS/Linux with GPU)
+
+# Note: flask-cors is NOT required — CORS handled natively in app.py
+# Note: face_landmarker.task model auto-downloads on first run via urllib
