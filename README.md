@@ -1,94 +1,286 @@
-# SentinelAI — AI Driver Monitoring System
+# 🚗 DriveSafe AI
 
-A real-time driver monitoring dashboard built with Python, Flask, MediaPipe, OpenCV, optional PyTorch/TensorFlow, and a single-page Vanilla JS frontend.
 
-**Python 3.10.19+ compatible.** Cross-platform: Windows, macOS, Linux.
+### **AI-Powered Driver Monitoring System for Real-Time Road Safety**
+
+*Enhancing road safety through Computer Vision, MediaPipe, and Machine Learning.*
+
+
+## Overview
+
+**DriveSafe AI** is an intelligent **Driver Monitoring System (DMS)** designed to improve road safety by continuously monitoring a driver's facial behavior and estimating the risk of unsafe driving conditions.
+
+Using **Computer Vision**, **MediaPipe Face Landmarks**, and **Machine Learning**, the system detects signs of:
+
+* Driver Drowsiness
+* Distraction
+* Fatigue
+* Looking Away
+* Cognitive Risk Indicators
+* Unsafe Driving Behaviour
+
+The application processes video frames in real time and provides a dynamic dashboard that visualizes driver status, behavioural analytics, and an overall safety risk score.
+
+
+# Features
+
+### Real-Time Face Tracking
+
+* Face Detection
+* Facial Landmark Tracking
+* Head Pose Estimation
+* Eye Aspect Ratio (EAR)
+* Mouth Aspect Ratio (MAR)
+
+
+### Fatigue Detection
+
+* Eye Closure Detection
+* Blink Rate Analysis
+* Yawning Detection
+* Drowsiness Monitoring
+* Driver Alert Generation
 
 ---
 
-## Features
+### AI Risk Analysis
 
-- Single-page glassmorphism dashboard (Live Feed → Metrics → Charts → Analytics → Performance → Timeline → AI Agent → Summary)
-- Real-time EAR / MAR / blink / yawn / microsleep detection
-- Head pose estimation (pitch, yaw, roll) via `solvePnP`
-- Attention & fatigue indices, temporal smoothing
-- Hybrid AI decision engine: rule-based CV + PyTorch MLP + TensorFlow temporal smoother (graceful fallback if either is absent)
-- Local offline AI Safety Agent: observations, recommendations, A–F driver grade
-- Live Chart.js charts: EAR, MAR, attention/fatigue, risk timeline, blink rate, head pose
-- System performance panel (CPU, RAM, FPS, latency) via `psutil`
-- One-click Start / Stop / Reset, auto-reconnect on page reload
+The hybrid AI engine evaluates multiple behavioural signals to estimate the driver's safety level.
 
----
+It considers:
 
-## Project Structure
+* Eye Closure
+* Head Orientation
+* Blink Frequency
+* Mouth Opening
+* Facial Movement
+* Driver Attention
+
+The model predicts an overall **Risk Score** that updates continuously during monitoring.
+
+
+### Interactive Dashboard
+
+The dashboard provides:
+
+* Live Camera Feed
+* Driver Status
+* Risk Score
+* Fatigue Indicator
+* Attention Level
+* Behaviour Analytics
+* Real-Time Alerts
+
+
+### Analytics
+
+The application records useful behavioural insights such as:
+
+* Average Risk
+* Driver Attention
+* Blink Statistics
+* Fatigue Trend
+* Session Summary
+* Driving Behaviour Overview
+
+
+# System Architecture
 
 ```
-SentinelAI/
+Camera Input
+      │
+      ▼
+OpenCV Video Capture
+      │
+      ▼
+MediaPipe Face Detection
+      │
+      ▼
+468 Facial Landmarks
+      │
+      ▼
+Feature Extraction
+      │
+      ▼
+Machine Learning Model
+      │
+      ▼
+Risk Prediction
+      │
+      ▼
+Dashboard & Alerts
+```
+
+
+#  Tech Stack
+
+## Backend
+
+* Python
+* Flask
+
+## Computer Vision
+
+* OpenCV
+* MediaPipe
+
+## Machine Learning
+
+* PyTorch
+* NumPy
+* Scikit-Learn
+* SciPy
+
+## Frontend
+
+* HTML5
+* CSS3
+* JavaScript
+
+
+# 📂 Project Structure
+
+```
+DriveSafe-AI
+│
 ├── backend/
-│   ├── app.py            # Flask server, routes, camera streaming, system metrics
-│   ├── detector.py        # MediaPipe pipeline, overlays, state assembly
-│   ├── features.py        # CV feature engineering (blink/pose/attention/fatigue)
-│   ├── ai_model.py        # PyTorch MLP, TF temporal smoother, hybrid engine, agent
-│   ├── utils.py            # EAR/MAR geometry, rolling smoother
-│   ├── run.py              # Launcher — downloads MediaPipe model, starts Flask
-│   └── requirements.txt
+│   ├── app.py
+│   ├── detector.py
+│   ├── ai_model.py
+│   ├── features.py
+│   ├── utils.py
+│   ├── requirements.txt
+│   ├── risk_mlp.pth
+│   └── face_landmarker.task
+│
 ├── frontend/
-│   ├── index.html          # Single-page dashboard (all sections, no tabs)
-│   ├── style.css           # Glassmorphism dark theme
-│   └── script.js           # Polling, charts, controls, agent, timeline
-└── docs/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── README.md
 ```
 
----
 
-## Setup
+#  Getting Started
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/sahaiatherva01/DriveSafe-AI.git
+cd DriveSafe-AI
+```
+
+
+## 2. Create Virtual Environment
+
+### Windows
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### macOS/Linux
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+
+## 3. Install Dependencies
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+
+## 4. Run the Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-
-pip install -r requirements.txt
-
-# Optional — enables PyTorch MLP and TensorFlow temporal smoother
-pip install torch tensorflow-cpu
-
-python run.py
+python app.py
 ```
 
-Open `frontend/index.html` in your browser, click **Start**.
 
-If PyTorch / TensorFlow are not installed, the system automatically falls back to rule-based risk classification and exponential moving-average smoothing — the dashboard works identically either way.
+## 5. Open the Frontend
 
----
+Simply open:
 
-## API Reference
+```
+frontend/index.html
+```
 
-| Method | Endpoint        | Description                          |
-|--------|-----------------|---------------------------------------|
-| POST   | /api/start      | Initialize camera and detector        |
-| POST   | /api/stop       | Stop detection, release camera        |
-| POST   | /api/reset      | Reset session counters                |
-| GET    | /api/status     | Current detection + AI state (JSON)   |
-| GET    | /api/health     | Backend health check                  |
-| GET    | /api/system     | CPU, RAM, camera resolution           |
-| GET    | /api/agent      | Safety agent analysis + driver grade  |
-| GET    | /api/analytics  | Time-series data for charts           |
-| GET    | /video_feed     | MJPEG annotated video stream          |
+or serve it using any local HTTP server.
 
----
 
-## Tech Stack
+#  Workflow
 
-- **Backend**: Python 3.10+, Flask, OpenCV, MediaPipe Tasks API, NumPy, SciPy, psutil
-- **AI** (optional): PyTorch (risk MLP), TensorFlow (temporal smoother) — both with rule-based/EMA fallback
-- **Frontend**: HTML5, CSS3 (glassmorphism), Vanilla JavaScript, Chart.js
-- **Fonts**: Space Grotesk, Inter, JetBrains Mono
+```
+Start Application
+        │
+        ▼
+Initialize Camera
+        │
+        ▼
+Detect Driver Face
+        │
+        ▼
+Extract Face Landmarks
+        │
+        ▼
+Compute Behaviour Features
+        │
+        ▼
+Predict Driver Risk
+        │
+        ▼
+Display Dashboard
+        │
+        ▼
+Generate Alerts
+```
 
----
 
-## Requirements
+# Future Enhancements
 
-- Python 3.10.19 or newer
-- Webcam connected and accessible
-- Modern browser (Chrome, Firefox, Edge, Safari)
+* Driver Identity Recognition
+* Emotion Detection
+* Mobile Application
+* Cloud Analytics Dashboard
+* Trip History
+* Driver Performance Reports
+* Multi-Camera Support
+* Voice Alerts
+* GPS Integration
+* Night Driving Optimization
+* Weather-aware Risk Prediction
+* Driver Behaviour Scoring
+
+# Applications
+
+* Smart Vehicles
+* Fleet Management
+* Public Transportation
+* Logistics
+* Commercial Trucks
+* Driver Safety Research
+* Insurance Analytics
+* Driver Training Systems
+
+
+# Learning Outcomes
+
+This project demonstrates practical implementation of:
+
+* Computer Vision
+* Human Behaviour Analysis
+* Face Landmark Detection
+* Machine Learning
+* Real-Time Analytics
+* Flask Backend Development
+* Frontend Integration
+* AI-Based Risk Assessment
+
+
+> **DriveSafe AI** demonstrates how Artificial Intelligence and Computer Vision can be combined to build practical, real-time driver safety systems that contribute to safer roads and smarter transportation.
