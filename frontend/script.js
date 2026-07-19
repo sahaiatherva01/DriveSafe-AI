@@ -6,7 +6,7 @@
 'use strict';
 
 /* ── Config ──────────────────────────────────────────────────────────────────── */
-
+const API_BASE      = 'http://localhost:5000';
 const POLL_MS       = 300;    // status poll when running
 const CHART_MS      = 3000;   // chart / analytics refresh
 const SYS_MS        = 2000;   // system metrics (CPU/RAM)
